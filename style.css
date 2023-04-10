@@ -2,3 +2,14 @@ body {
     margin: 0;
     background-color: black;
 }
+
+#wrapper{
+    position:relative;
+    /* width:3000px; */
+    /* height:2000px; */
+}
+#game-players,#game-canvas{
+    position:absolute; top:0px; left:0px;
+    /* width:3000px; */
+    /* height:2000px; */
+}
