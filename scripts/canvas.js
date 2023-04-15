@@ -72,378 +72,130 @@ class Wall {
   }
 }
 
+class Ghost {
+  constructor({ position, velocity, color }) {
+    this.position = position;
+    this.velocity = velocity;
+    this.color = color;
+    this.radius = 6;
+  }
+  draw() {
+    c.beginPath();
+    c.arc(
+      this.position.x + this.radius,
+      this.position.y + this.radius,
+      this.radius,
+      0,
+      Math.PI * 2
+    );
+    c.fillStyle = this.color;
+    c.fill();
+    c.closePath();
+  }
+  update() {
+    this.draw();
+    this.position.x += this.velocity.x;
+    this.position.y += this.velocity.y;
+  }
+  possibleMoves() {
+    const possibleMoves = [];
+    const currentPosition = {
+      x: Math.floor(this.position.x/25),
+      y: Math.floor(this.position.y/25)
+    };
+    if (gameMap[currentPosition.y][currentPosition.x+1] === "." && this.velocity.x !== -7) {
+      possibleMoves.push("right");
+    }
+    if (gameMap[currentPosition.y][currentPosition.x-1] === "." && this.velocity.x !== 7) {
+      possibleMoves.push("left");
+    }
+    if (gameMap[currentPosition.y+1][currentPosition.x] === "." && this.velocity.y !== -7) {
+      possibleMoves.push("down");
+    }
+    if (gameMap[currentPosition.y-1][currentPosition.x] === "." && this.velocity.y !== 7) {
+      possibleMoves.push("up");
+    }
+    return possibleMoves;
+  }
+  changeDirection() {
+    const possibleMoves = this.possibleMoves();
+    const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+    const currentPosition = {
+      x: Math.floor(this.position.x/25),
+      y: Math.floor(this.position.y/25)
+    };
+    switch (randomMove) {
+      case "right":
+        if (this.position.y - this.radius > currentPosition.y * 25 && this.position.y + this.radius < (currentPosition.y + 1) * 25) {
+          this.velocity = { x: 7, y: 0 };
+          break;
+        }
+      case "left":
+        if (this.position.y - this.radius > currentPosition.y * 25 && this.position.y + this.radius < (currentPosition.y + 1) * 25) {
+          this.velocity = { x: -7, y: 0 };
+          break;
+        }
+      case "down":
+        if (this.position.x - this.radius > currentPosition.x * 25 && this.position.x + this.radius < (currentPosition.x + 1) * 25) {
+          this.velocity = { x: 0, y: 7 };
+          break;
+        }
+      case "up":
+        if (this.position.x - this.radius > currentPosition.x * 25 && this.position.x + this.radius < (currentPosition.x + 1) * 25) {
+          this.velocity = { x: 0, y: -7 };
+          break;
+      }
+    }
+  }
+}
+
+
 const pellets = [];
 const walls = [];
+const ghosts = [
+  new Ghost({
+    position: { x: 37.5, y: 30 },
+    // position: { x: 250, y: 200 },
+    velocity: { x: 7, y: 0 },
+    color: "green",
+  }),
+  new Ghost({
+    position: { x: 37.5, y: 30 },
+    // position: { x: 250, y: 200 },
+    velocity: { x: 7, y: 0 },
+    color: "pink",
+  }),
+  new Ghost({
+    position: { x: 37.5, y: 30 },
+    // position: { x: 250, y: 200 },
+    velocity: { x: 7, y: 0 },
+    color: "red",
+  }),
+  new Ghost({
+    position: { x: 37.5, y: 30 },
+    // position: { x: 250, y: 200 },
+    velocity: { x: 7, y: 0 },
+    color: "blue",
+  }),
+];
 
 const gameMap = [
-  [
-    "1",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "_",
-    "2",
-  ],
-  [
-    "r",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    "l",
-  ],
-  [
-    "r",
-    ".",
-    "a",
-    "b",
-    ".",
-    "e",
-    "i",
-    "i",
-    "i",
-    "f",
-    ".",
-    "e",
-    "i",
-    "i",
-    "i",
-    "f",
-    ".",
-    "a",
-    "b",
-    ".",
-    "l",
-  ],
-  [
-    "r",
-    ".",
-    "c",
-    "d",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    " ",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    "c",
-    "d",
-    ".",
-    "l",
-  ],
-  [
-    "r",
-    ".",
-    ".",
-    ".",
-    ".",
-    "a",
-    "b",
-    ".",
-    "a",
-    "-",
-    "-",
-    "-",
-    "b",
-    ".",
-    "a",
-    "b",
-    ".",
-    ".",
-    ".",
-    ".",
-    "l",
-  ],
-  [
-    "r",
-    ".",
-    "a",
-    "b",
-    ".",
-    "c",
-    "d",
-    ".",
-    "c",
-    "_",
-    "_",
-    "_",
-    "d",
-    ".",
-    "c",
-    "d",
-    ".",
-    "a",
-    "b",
-    ".",
-    "l",
-  ],
-  [
-    "r",
-    ".",
-    "l",
-    "r",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    "l",
-    "r",
-    ".",
-    "l",
-  ],
-  [
-    "r",
-    ".",
-    "l",
-    "r",
-    ".",
-    "a",
-    "b",
-    ".",
-    "g",
-    " ",
-    " ",
-    " ",
-    "g",
-    ".",
-    "a",
-    "b",
-    ".",
-    "l",
-    "r",
-    ".",
-    "l",
-  ],
-  [
-    "r",
-    ".",
-    "c",
-    "d",
-    ".",
-    "l",
-    "r",
-    ".",
-    "j",
-    " ",
-    " ",
-    " ",
-    "j",
-    ".",
-    "l",
-    "r",
-    ".",
-    "c",
-    "d",
-    ".",
-    "l",
-  ],
-  [
-    "r",
-    ".",
-    ".",
-    ".",
-    ".",
-    "l",
-    "r",
-    ".",
-    "l",
-    "-",
-    "-",
-    "-",
-    "r",
-    ".",
-    "l",
-    "r",
-    ".",
-    ".",
-    ".",
-    ".",
-    "l",
-  ],
-  [
-    "r",
-    ".",
-    "a",
-    "b",
-    ".",
-    "c",
-    "d",
-    ".",
-    "c",
-    "_",
-    "_",
-    "_",
-    "d",
-    ".",
-    "c",
-    "d",
-    ".",
-    "a",
-    "b",
-    ".",
-    "l",
-  ],
-  [
-    "r",
-    ".",
-    "l",
-    "r",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    "l",
-    "r",
-    ".",
-    "l",
-  ],
-  [
-    "r",
-    ".",
-    "l",
-    "3",
-    "-",
-    "-",
-    "-",
-    "b",
-    ".",
-    "a",
-    "-",
-    "b",
-    ".",
-    "a",
-    "-",
-    "-",
-    "-",
-    "4",
-    "r",
-    ".",
-    "l",
-  ],
-  [
-    "r",
-    ".",
-    "c",
-    "_",
-    "_",
-    "_",
-    "_",
-    "d",
-    ".",
-    "c",
-    "_",
-    "d",
-    ".",
-    "c",
-    "_",
-    "_",
-    "_",
-    "_",
-    "d",
-    ".",
-    "l",
-  ],
-  [
-    "r",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    ".",
-    "l",
-  ],
-  [
-    "3",
-    "-",
-    "-",
-    "-",
-    "-",
-    "-",
-    "-",
-    "-",
-    "-",
-    "-",
-    "-",
-    "-",
-    "-",
-    "-",
-    "-",
-    "-",
-    "-",
-    "-",
-    "-",
-    "-",
-    "4",
-  ],
+  [ "1", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "2", ],
+  [ "r", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "l", ],
+  [ "r", ".", "a", "b", ".", "e", "i", "i", "i", "f", ".", "e", "i", "i", "i", "f", ".", "a", "b", ".", "l", ],
+  [ "r", ".", "c", "d", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "c", "d", ".", "l", ],
+  [ "r", ".", ".", ".", ".", "a", "b", ".", "a", "-", "-", "-", "b", ".", "a", "b", ".", ".", ".", ".", "l", ],
+  [ "r", ".", "a", "b", ".", "c", "d", ".", "c", "_", "_", "_", "d", ".", "c", "d", ".", "a", "b", ".", "l", ],
+  [ "r", ".", "l", "r", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "l", "r", ".", "l", ],
+  [ "r", ".", "l", "r", ".", "a", "b", ".", "g", " ", " ", " ", "g", ".", "a", "b", ".", "l", "r", ".", "l", ],
+  [ "r", ".", "c", "d", ".", "l", "r", ".", "j", " ", " ", " ", "j", ".", "l", "r", ".", "c", "d", ".", "l", ],
+  [ "r", ".", ".", ".", ".", "l", "r", ".", "l", "-", "-", "-", "r", ".", "l", "r", ".", ".", ".", ".", "l", ],
+  [ "r", ".", "a", "b", ".", "c", "d", ".", "c", "_", "_", "_", "d", ".", "c", "d", ".", "a", "b", ".", "l", ],
+  [ "r", ".", "l", "r", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "l", "r", ".", "l", ],
+  [ "r", ".", "l", "3", "-", "-", "-", "b", ".", "a", "-", "b", ".", "a", "-", "-", "-", "4", "r", ".", "l", ],
+  [ "r", ".", "c", "_", "_", "_", "_", "d", ".", "c", "_", "d", ".", "c", "_", "_", "_", "_", "d", ".", "l", ],
+  [ "r", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "l", ],
+  [ "3", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "4", ],
 ];
 
 function loadImages(src) {
@@ -471,14 +223,11 @@ const images = {
   r: "img/right.png",
   _: "img/bottom.png",
   "-": "img/top.png",
-  ".": "img/path.png",
-  " ": "img/path.png",
 };
 
 gameMap.forEach((row, i) => {
   row.forEach((cell, j) => {
     if (cell === ".") {
-      console.log("pellet");
       pellets.push(
         new Pellet({
           position: {
@@ -510,6 +259,7 @@ class Packman {
     this.velocity = velocity;
     this.color = color;
     this.radius = 9;
+    this.score = 0;
   }
 
   draw() {
@@ -578,7 +328,6 @@ class Packman {
     c.strokeStyle = "grey";
     c.stroke();
     c.closePath();
-    // console.log(this.position)
   }
 }
 
@@ -640,13 +389,22 @@ movepackmanP2$.subscribe((distance) => {
   player2.velocity = distance;
 });
 
+walls.forEach((wall) => {
+  wall.draw();
+})
+
 const cicle = interval(50);
 
 cicle.subscribe(() => {
+  console.log("player1 score: " + player1.score)
+  console.log("player2 score: " + player2.score)
   c.clearRect(0, 0, canvas2.width, canvas2.height);
   player1.move();
   player2.move();
-  walls.forEach((wall) => wall.draw());
+  ghosts.forEach((ghost) => {
+    ghost.update();
+    ghost.changeDirection();
+  });
   pellets.forEach((pellet) => {
     pellet.draw();
     if (
@@ -667,6 +425,21 @@ cicle.subscribe(() => {
     ) {
       pellet.color = "red";
     }
+    ghosts.forEach((ghost) => {
+      if (
+        Math.hypot(
+          pellet.position.x - ghost.position.x,
+          pellet.position.y - ghost.position.y
+        ) <
+        pellet.radius + ghost.radius
+      ) {
+        if (pellet.color === "blue") {
+          player1.score += 10;
+        } else if (pellet.color === "red") {
+          player2.score += 10;
+        }
+      }
+    })
   });
 });
 
