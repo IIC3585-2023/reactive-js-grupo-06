@@ -438,6 +438,7 @@ cicle.subscribe(() => {
         } else if (pellet.color === "red") {
           player2.score += 10;
         }
+        pellet.color = "white";
       }
     })
   });
