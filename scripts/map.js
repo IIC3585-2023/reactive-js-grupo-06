@@ -1,9 +1,11 @@
 import {
   PELLET_RADIUS, 
   WALL_DIM,
-  GAME_MAP,
   IMAGES,
+  GAME_MAP_ORIGINAL
 } from './constants.js';
+
+export const GAME_MAP = [...GAME_MAP_ORIGINAL]
 
 const canvas = document.getElementById("map-canvas");
 const mapCtx = canvas.getContext("2d");
@@ -38,11 +40,13 @@ function createWall({ position, image, type}) {
   }
 }
 
-function createPellet({ position }) {
+function createPellet({ position, position_relative }) {
   return {
     position,
+    position_relative,
     radius: PELLET_RADIUS,
     color: "white",
+    alive: true,
     draw() {
       ctx.beginPath();
       ctx.arc(
@@ -57,9 +61,15 @@ function createPellet({ position }) {
       ctx.closePath();
     },
     update() {
-      this.draw();
+      if (this.alive){
+        this.draw();
+      }
     }
   }
+}
+
+export function deletePellet(pellet) {
+  pellet.alive = false
 }
 
 export function drawMap() {
@@ -74,6 +84,10 @@ export function drawMap() {
             position: {
               x: WALL_DIM * j + WALL_DIM / 2,
               y: WALL_DIM * i + WALL_DIM / 2,
+            },
+            position_relative: {
+              x: j,
+              y: i,
             },
           })
         );
@@ -91,3 +105,4 @@ export function drawMap() {
   walls.forEach((wall) => wall.draw());
   return pellets
 }
+

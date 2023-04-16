@@ -1,11 +1,16 @@
 import {
   WALL_DIM,
-  GAME_MAP,
   PACMAN_RADIUS,
   MOVEMENT_SPEED,
   GHOST_RADIUS,
   GHOST_START,
+  ENEMY_QUANTITY,
+  IMAGES,
 } from './constants.js';
+
+import {
+  GAME_MAP
+} from './map.js';
 
 const canvas2 = document.getElementById("game-canvas");
 const ctx = canvas2.getContext("2d");
@@ -28,6 +33,8 @@ function createGhost({ position, velocity, color }) {
         0,
         Math.PI * 2
       );
+      ctx.lineTo(this.x + GHOST_RADIUS, this.y + GHOST_RADIUS);
+      ctx.strokeStyle = 'red'
       ctx.fillStyle = this.color;
       ctx.fill();
       ctx.closePath();
@@ -43,16 +50,16 @@ function createGhost({ position, velocity, color }) {
         x: Math.floor(this.position.x / WALL_DIM),
         y: Math.floor(this.position.y / WALL_DIM)
       };
-      if (GAME_MAP[currentPosition.y][currentPosition.x + 1] === "." && this.velocity.x !== -MOVEMENT_SPEED) {
+      if ((GAME_MAP[currentPosition.y][currentPosition.x + 1] === "." || GAME_MAP[currentPosition.y][currentPosition.x + 1] === " ")&& this.velocity.x !== -MOVEMENT_SPEED) {
         possibleMoves.push("right");
       }
-      if (GAME_MAP[currentPosition.y][currentPosition.x - 1] === "." && this.velocity.x !== MOVEMENT_SPEED) {
+      if ((GAME_MAP[currentPosition.y][currentPosition.x - 1] === "." || GAME_MAP[currentPosition.y][currentPosition.x - 1] === " ") && this.velocity.x !== MOVEMENT_SPEED) {
         possibleMoves.push("left");
       }
-      if (GAME_MAP[currentPosition.y + 1][currentPosition.x] === "." && this.velocity.y !== -MOVEMENT_SPEED) {
+      if ((GAME_MAP[currentPosition.y + 1][currentPosition.x] === "." || GAME_MAP[currentPosition.y + 1][currentPosition.x] === " ") && this.velocity.y !== -MOVEMENT_SPEED) {
         possibleMoves.push("down");
       }
-      if (GAME_MAP[currentPosition.y - 1][currentPosition.x] === "." && this.velocity.y !== MOVEMENT_SPEED) {
+      if ((GAME_MAP[currentPosition.y - 1][currentPosition.x] === "." || GAME_MAP[currentPosition.y - 1][currentPosition.x] === " ") && this.velocity.y !== MOVEMENT_SPEED) {
         possibleMoves.push("up");
       }
       return possibleMoves;
@@ -91,7 +98,7 @@ function createGhost({ position, velocity, color }) {
 }
 
 export function createGhosts() {
-  const colors = ["red", "pink", "cyan", "orange"]
+  const colors = Array(ENEMY_QUANTITY).fill("white")
   return colors.map((color) => {
     return createGhost({
       position: { x: 367.5, y: 330.5 },
@@ -169,7 +176,16 @@ function createPacman({ position, velocity, color }) {
   }
 }
 
-export function createPlayer({ position, velocity, color }) {
+export function createPlayer({ position, velocity, color, playerNumber }) {
   const player = createPacman({ position, velocity, color });
+  const pointsDiv = document.querySelector(`#p${playerNumber}-score`);
+  pointsDiv.style.color = color
+  pointsDiv.innerText = 0
   return player
+}
+
+export function addPoint(player) {
+  player.score += 1;
+  const pointsDiv = document.querySelector(`#p${player.playerNumber}-score`);
+  pointsDiv.innerText = 0
 }

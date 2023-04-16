@@ -21,6 +21,7 @@ body {
 	border-radius: 7px;
     box-shadow: 0 .2em gray; 
     cursor: pointer;
+    max-height: 40px;
 }
 
 #wrapper {
@@ -31,4 +32,12 @@ body {
     position: absolute; 
     top: 0px; 
     left:0px;
+}
+
+.UI {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    width: 600px;
 }

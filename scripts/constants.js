@@ -5,12 +5,13 @@ export const PELLET_RADIUS = WALL_DIM / 7;
 export const INTERVAL_RATE = 50;
 export const MOVEMENT_SPEED = WALL_DIM / 5;
 
-export const PACMAN_RADIUS = WALL_DIM / 3;
+export const PACMAN_RADIUS = WALL_DIM / 4;
 export const PLAYER_1_START = { x: WALL_DIM*19.5, y: WALL_DIM*1.5 }
 export const PLAYER_2_START = { x: WALL_DIM*1.5, y: WALL_DIM*1.5 }
 
 export const GHOST_RADIUS = WALL_DIM / 3;
-export const GHOST_START = { x: WALL_DIM*10.5, y: WALL_DIM*9.5 }
+export const GHOST_START = { x: 367.5, y: 330.5 }
+export const ENEMY_QUANTITY = 4
 
 export const IMAGES = {
   1: "img/1.png",
@@ -32,7 +33,7 @@ export const IMAGES = {
   _: "img/bottom.png",
   "-": "img/top.png",
   ".": "img/path.png",
-  " ": "img/path.png",
+  " ": "img/path.png"
 };
 
 export const GAME_MAP2 = [
@@ -59,7 +60,7 @@ export const GAME_MAP2 = [
   [ "3", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "4", ],
 ];
 
-export const GAME_MAP = [
+export const GAME_MAP_ORIGINAL = [
   [ "1", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "2", ],
   [ "r", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "l", ],
   [ "r", ".", "a", "b", ".", "e", "i", "i", "i", "f", ".", "e", "i", "i", "i", "f", ".", "a", "b", ".", "l", ],
