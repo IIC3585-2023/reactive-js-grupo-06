@@ -3,6 +3,7 @@ import {
   PACMAN_RADIUS,
   MOVEMENT_SPEED,
   GHOST_RADIUS,
+  GHOST_DIM,
   GHOST_START_X,
   GHOST_START_Y,
   ENEMY_QUANTITY,
@@ -25,20 +26,30 @@ function createGhost({ position, velocity, color }) {
     velocity,
     color,
     radius: GHOST_RADIUS,
+    width: GHOST_DIM,
+    height: GHOST_DIM,
     draw() {
+      const x = this.position.x - GHOST_RADIUS
+      const y = this.position.y - GHOST_RADIUS;
+      // Draw the body of the ghost
       ctx.beginPath();
-      ctx.arc(
-        this.position.x,
-        this.position.y,
-        this.radius,
-        0,
-        Math.PI * 2
-      );
-      ctx.lineTo(this.x + GHOST_RADIUS, this.y + GHOST_RADIUS);
-      ctx.strokeStyle = 'red'
       ctx.fillStyle = this.color;
+      ctx.fillRect(x, y + this.height/ 2, this.width, this.height / 2);
+      ctx.moveTo(x, y + this.height/ 2);
+      ctx.arc(x + this.width / 2, y + this.height / 2, this.width / 2, Math.PI, 0, false);
       ctx.fill();
-      ctx.closePath();
+      // Draw the eyes
+      ctx.beginPath();
+      ctx.fillStyle = "#FFF";
+      ctx.arc(x + this.width / 3, y + this.height / 3, this.width / 10, 0, Math.PI * 2, true);
+      ctx.arc(x + 2 * this.width / 3, y + this.height / 3, this.width / 10, 0, Math.PI * 2, true);
+      ctx.fill();
+      // Draw the pupils
+      ctx.beginPath();
+      ctx.fillStyle = "#000";
+      ctx.arc(x + this.width / 3, y + this.height / 3, this.width / 25, 0, Math.PI * 2, true);
+      ctx.arc(x + 2 * this.width / 3, y + this.height / 3, this.width / 25, 0, Math.PI * 2, true);
+      ctx.fill();
     },
     update() {
       this.draw();
@@ -117,6 +128,7 @@ function createPacman({ position, velocity, color, playerNumber }) {
     playerNumber,
     radius: PACMAN_RADIUS,
     score: 0,
+    movementSubscription: null,
     draw() {
       ctx.beginPath();
       ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
@@ -184,7 +196,7 @@ export function createPlayer({ position, velocity, color, playerNumber }) {
 export function collisionWithGhost(player, ghost) {
   const x = player.position.x - ghost.position.x;
   const y = player.position.y - ghost.position.y;
-  return Math.hypot(x, y) <= PACMAN_RADIUS/2 + GHOST_RADIUS/2
+  return Math.hypot(x, y) < PACMAN_RADIUS + GHOST_RADIUS
 }
 
 export function addPoints(player) {

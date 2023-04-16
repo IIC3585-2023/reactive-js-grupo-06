@@ -28,7 +28,7 @@ body {
     position: relative;
 }
 
-#game-players,#game-canvas {
+#game-players, #game-canvas {
     position: absolute; 
     top: 0px; 
     left:0px;
@@ -40,4 +40,13 @@ body {
     justify-content: space-around;
     align-items: center;
     width: 600px;
+    height: 50px;
+    margin-top: 50px;
+}
+
+#game-time {
+    width: 50px;
+    font-size: 20pt;
+    font-family: 'Press Start 2p';
+    color: white;
 }
