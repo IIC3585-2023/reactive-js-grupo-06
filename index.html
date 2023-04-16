@@ -2,19 +2,19 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0" /> -->
     <title>Tarea 2: Reactive JS</title>
+    <link href='https://fonts.googleapis.com/css?family=Press Start 2P' rel='stylesheet'>
     <link rel="stylesheet" href="style.css" />
     <script src="https://unpkg.com/rxjs@^7/dist/bundles/rxjs.umd.min.js"></script>
   </head>
   <body>
+    <button id="start-button">START</button>
     <div id="wrapper">
+      <canvas id="map-canvas"></canvas>
       <canvas id="game-canvas"></canvas>
-      <canvas id="game-players"></canvas>
     </div>
     
-    <!-- <script src="./scripts/main.js"></script> -->
-    <script src="./scripts/canvas.js"></script>
-    <!-- <script src="./scripts/canvas.js"></script> -->
+    <script type="module" src="./scripts/main.js"></script>
   </body>
 </html>
