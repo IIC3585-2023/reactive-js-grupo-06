@@ -19,7 +19,7 @@ const ctx = canvas2.getContext("2d");
 canvas2.width = innerWidth;
 canvas2.height = innerHeight;
 
-
+//Se crean los pellets y los fantasmas
 const pellets = drawMap();
 const ghosts = createGhosts();
 
@@ -36,6 +36,9 @@ function subscribePlayerToGame(player) {
   } else {
     keys = ["a", "d", "w", "s"]
   }
+  // Cuando se presiona una tecla, si deberia ser un movimiento valido
+  // evitamos que mueva la pantalla, y seteamos en moves$ el diccionario de la velocidad correspondiente.
+
   const moves$ = directionsSpeed.map(
     (speed) => {
       return fromEvent(document, "keydown")
@@ -47,9 +50,11 @@ function subscribePlayerToGame(player) {
         )
     }
   )
+  // moves guarda el valor de multiples teclas presionadas a la vez para manejarlas juntas.
+  // seteamos la velocidad del jugador
   const movePlayer$ = merge(...moves$);
-  movePlayer$.subscribe((distance) => {
-    player.velocity = distance;
+  movePlayer$.subscribe((velocity) => {
+    player.velocity = velocity;
   });
 }
 
@@ -69,18 +74,21 @@ const player2 = createPlayer({
   playerNumber: 2,
 });
 
-
+// Suscribimos a los jugadores a los eventos de teclas.
 subscribePlayerToGame(player1)
 subscribePlayerToGame(player2)
 
 
 // GAME LOOP
+// El juego se desarrolla en un loop infinito con logica en cada frame
 interval(INTERVAL_RATE)
   .pipe(
+    // borramos los elementos del canvas para re dibujar el nuevo estado
     tap(() => {
       ctx.clearRect(0, 0, canvas2.width, canvas2.height);
       player1.move();
       player2.move();
+      // Para cada fantasma revisamos que exista una colision con un jugador
       ghosts.forEach((ghost) => {
         ghost.update();
         ghost.changeDirection();
@@ -91,28 +99,44 @@ interval(INTERVAL_RATE)
           console.log("player 2 died")
         }
       });
-      pellets.forEach((pellet) => {
-        if (!pellet.alive) { return }
-        pellet.update();
-        if (collisionWithPellet(player1, pellet)) { pellet.color = player1.color }
-        if (collisionWithPellet(player2, pellet)) { pellet.color = player2.color }
-        ghosts.forEach((ghost) => {
-          if (ghostCollisionWithPellet(ghost, pellet)) {
+
+      // Para solo los pellets que estan vivos, los re dibujamos
+      from(pellets)
+        .pipe(
+          filter(pellet => pellet.alive),
+          tap(pellet => pellet.update()),
+          // si un jugador colisiona con un pelet lo cambia de color
+          tap(pellet => {
+            if (collisionWithPellet(player1, pellet)) {
+              pellet.color = player1.color;
+            }
+            if (collisionWithPellet(player2, pellet)) {
+              pellet.color = player2.color;
+            }
+          }),
+          // para los pellets, filtramos los que tienen coplision con fantasmas, y si tienen otro color
+          // se elimina el pellet y si asigna el puntaje.
+          map(pellet => [pellet, ghosts.filter(ghost => ghostCollisionWithPellet(ghost, pellet))]),
+          filter(collisions => collisions[1].length > 0),
+          tap(collisions => {
+            const pellet = collisions[0];
             if (pellet.color === player1.color) {
               player1.score = addPoints(player1);
-              deletePellet(pellet)
+              deletePellet(pellet);
+              pellet.color = 'white';
             } else if (pellet.color === player2.color) {
-              player1.score = addPoints(player2);
-              deletePellet(pellet)
+              player2.score = addPoints(player2);
+              deletePellet(pellet);
+              pellet.color = 'white';
             }
-            pellet.color = "white";
-          }
-        })
-      });
+            
+          }),
+        )
+        .subscribe();
     })
   ).subscribe()
 
-
+// Se reinicia al estado inicial del juego.
 function reset() {
   pellets.forEach((p) => { p.alive = true; p.color = 'white' })
   player1.score = 0;
@@ -128,6 +152,7 @@ function reset() {
 
 const resetButton = document.querySelector('#start-button');
 
+// Conectamos al funcion con un un boton del front.
 fromEvent(resetButton, 'click')
   .pipe(
     tap(() => reset())

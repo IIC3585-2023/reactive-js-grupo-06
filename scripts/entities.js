@@ -126,6 +126,7 @@ function createPacman({ position, velocity, color, playerNumber }) {
     },
     move() {
       this.draw();
+      // Obtenemos la posision en el siguiente frame
       const nextPosition = {
         x:
           (this.position.x + this.velocity.x + GAME_MAP[0].length * WALL_DIM) %
@@ -134,6 +135,7 @@ function createPacman({ position, velocity, color, playerNumber }) {
           (this.position.y + this.velocity.y + GAME_MAP.length * WALL_DIM) %
           (GAME_MAP.length * WALL_DIM),
       };
+      // Para todos los posibles escenarios revisamos si chocara con una pared
       const EsquinaAbajoIzq =
         GAME_MAP[Math.trunc((nextPosition.y + this.radius) / WALL_DIM)][
           Math.trunc((nextPosition.x - this.radius) / WALL_DIM)
@@ -150,6 +152,7 @@ function createPacman({ position, velocity, color, playerNumber }) {
         GAME_MAP[Math.trunc((nextPosition.y - this.radius) / WALL_DIM)][
           Math.trunc((nextPosition.x - this.radius) / WALL_DIM)
         ];
+        //si es asi, la velocidad del player queda en 0
       if (
         (EsquinaAbajoIzq != "." && EsquinaAbajoIzq != " ") ||
         (EsquinaArribaDer != "." && EsquinaArribaDer != " ") ||
@@ -158,22 +161,14 @@ function createPacman({ position, velocity, color, playerNumber }) {
       ) {
         this.velocity = { x: 0, y: 0 };
       }
+
+      // le cambiamos la posicion sumando su velocidad.
       this.position.x =
         (this.position.x + this.velocity.x + GAME_MAP[0].length * WALL_DIM) %
         (GAME_MAP[0].length * WALL_DIM);
       this.position.y =
         (this.position.y + this.velocity.y + GAME_MAP.length * WALL_DIM) %
         (GAME_MAP.length * WALL_DIM);
-      ctx.beginPath();
-      ctx.rect(
-        Math.trunc(nextPosition.x / WALL_DIM) * WALL_DIM,
-        Math.trunc(nextPosition.y / WALL_DIM) * WALL_DIM,
-        WALL_DIM,
-        WALL_DIM
-      );
-      ctx.strokeStyle = "grey";
-      ctx.stroke();
-      ctx.closePath();
     }
   }
 }
