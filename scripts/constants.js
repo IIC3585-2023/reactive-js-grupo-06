@@ -3,6 +3,7 @@ export const WALL_DIM = 35;
 export const PELLET_RADIUS = WALL_DIM / 7;
 
 export const INTERVAL_RATE = 1000 / 30;
+export const GAME_TIME = 45000;
 export const MOVEMENT_SPEED = WALL_DIM / 5;
 
 export const PACMAN_RADIUS = WALL_DIM / 4;
