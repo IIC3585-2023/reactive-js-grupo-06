@@ -1,5 +1,5 @@
-const { fromEvent, from } = rxjs;
-const { map, debounceTime, mapTo, filter, tap, distinctUntilChanged, pluck  } = rxjs.operators;
+const { fromEvent, from, timer } = rxjs;
+const { map, debounceTime, mapTo, filter, tap, takeUntil } = rxjs.operators;
 const { merge, interval } = rxjs;
 import { drawMap, collisionWithPellet, deletePellet, ghostCollisionWithPellet } from './map.js';
 import { createGhosts, createPlayer, collisionWithGhost, addPoints } from './entities.js';
@@ -48,7 +48,7 @@ function subscribePlayerToGame(player) {
     }
   )
   const movePlayer$ = merge(...moves$);
-  movePlayer$.subscribe((distance) => {
+  player.movementSubscription = movePlayer$.subscribe((distance) => {
     player.velocity = distance;
   });
 }
@@ -73,42 +73,58 @@ const player2 = createPlayer({
 subscribePlayerToGame(player1)
 subscribePlayerToGame(player2)
 
+const timerStart = Date.now();
+const stop$ = timer(45000)
 
 // GAME LOOP
 interval(INTERVAL_RATE)
   .pipe(
+    takeUntil(stop$),
+    filter(() => !player1.movementSubscription.closed || !player2.movementSubscription.closed),
     tap(() => {
+      document.querySelector(`#game-time`).innerText = (Date.now() - timerStart)/1000;
       ctx.clearRect(0, 0, canvas2.width, canvas2.height);
-      player1.move();
-      player2.move();
+      if (!player1.movementSubscription.closed) { player1.move() }
+      if (!player2.movementSubscription.closed) { player2.move() }
       ghosts.forEach((ghost) => {
         ghost.update();
         ghost.changeDirection();
         if (collisionWithGhost(player1, ghost)) {
           console.log("player 1 died")
+          player1.movementSubscription.unsubscribe();
+          player1.velocity = { x: 0, y: 0 };
         }
         if (collisionWithGhost(player2, ghost)) {
           console.log("player 2 died")
+          player2.velocity = { x: 0, y: 0 };
+          player2.movementSubscription.unsubscribe();
         }
       });
-      pellets.forEach((pellet) => {
-        if (!pellet.alive) { return }
-        pellet.update();
-        if (collisionWithPellet(player1, pellet)) { pellet.color = player1.color }
-        if (collisionWithPellet(player2, pellet)) { pellet.color = player2.color }
-        ghosts.forEach((ghost) => {
-          if (ghostCollisionWithPellet(ghost, pellet)) {
+      from(pellets)
+        .pipe(
+          filter(pellet => pellet.alive),
+          tap(pellet => pellet.update()),
+          tap(pellet => {
+            if (collisionWithPellet(player1, pellet)) { pellet.color = player1.color }
+            if (collisionWithPellet(player2, pellet)) { pellet.color = player2.color}
+          }),
+          map(pellet => [pellet, ghosts.filter(ghost => ghostCollisionWithPellet(ghost, pellet))]),
+          filter(collisions => collisions[1].length > 0),
+          tap(collisions => {
+            const pellet = collisions[0];
             if (pellet.color === player1.color) {
               player1.score = addPoints(player1);
-              deletePellet(pellet)
+              deletePellet(pellet);
+              pellet.color = 'white';
             } else if (pellet.color === player2.color) {
-              player1.score = addPoints(player2);
-              deletePellet(pellet)
+              player2.score = addPoints(player2);
+              deletePellet(pellet);
+              pellet.color = 'white';
             }
-            pellet.color = "white";
-          }
-        })
-      });
+
+          }),
+        )
+        .subscribe();
     })
   ).subscribe()
 
@@ -123,6 +139,8 @@ function reset() {
   player2.position = { x: PLAYER_2_START_X, y: PLAYER_2_START_Y };
   player1.velocity = { x: 0, y: 0 };
   player2.velocity = { x: 0, y: 0 };
+  subscribePlayerToGame(player1)
+  subscribePlayerToGame(player2)
   ghosts.forEach((g) => { g.position = { x: GHOST_START_X, y: GHOST_START_Y } })
 }
 
