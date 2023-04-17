@@ -1,0 +1,52 @@
+body {
+    margin-left: 25%;
+    background-color: black;
+    font-size: 30pt;
+    font-family: 'Press Start 2p';
+}
+
+/* https://codepen.io/DanielWeiner/pen/naybVd */
+#start-button {
+    text-align: center;
+	display: inline-block;
+	margin:5px;
+    font-weight: bold;
+    padding: 10px 10px 8px 10px ;
+    background-color: lightgray;
+    text-shadow: -1px -1px black, 1px 1px white;
+    color: gray;
+    -webkit-border-radius: 7px;
+	-moz-border-radius: 7px;
+	-o-border-radius: 7px;
+	border-radius: 7px;
+    box-shadow: 0 .2em gray; 
+    cursor: pointer;
+    max-height: 40px;
+}
+
+#wrapper {
+    position: relative;
+}
+
+#game-players, #game-canvas {
+    position: absolute; 
+    top: 0px; 
+    left:0px;
+}
+
+.UI {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    width: 600px;
+    height: 50px;
+    margin-top: 50px;
+}
+
+#game-time {
+    width: 50px;
+    font-size: 20pt;
+    font-family: 'Press Start 2p';
+    color: white;
+}
