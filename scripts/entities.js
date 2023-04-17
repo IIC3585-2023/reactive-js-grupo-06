@@ -3,7 +3,8 @@ import {
   PACMAN_RADIUS,
   MOVEMENT_SPEED,
   GHOST_RADIUS,
-  GHOST_START,
+  GHOST_START_X,
+  GHOST_START_Y,
   ENEMY_QUANTITY,
   IMAGES,
 } from './constants.js';
@@ -50,7 +51,7 @@ function createGhost({ position, velocity, color }) {
         x: Math.floor(this.position.x / WALL_DIM),
         y: Math.floor(this.position.y / WALL_DIM)
       };
-      if ((GAME_MAP[currentPosition.y][currentPosition.x + 1] === "." || GAME_MAP[currentPosition.y][currentPosition.x + 1] === " ")&& this.velocity.x !== -MOVEMENT_SPEED) {
+      if ((GAME_MAP[currentPosition.y][currentPosition.x + 1] === "." || GAME_MAP[currentPosition.y][currentPosition.x + 1] === " ") && this.velocity.x !== -MOVEMENT_SPEED) {
         possibleMoves.push("right");
       }
       if ((GAME_MAP[currentPosition.y][currentPosition.x - 1] === "." || GAME_MAP[currentPosition.y][currentPosition.x - 1] === " ") && this.velocity.x !== MOVEMENT_SPEED) {
@@ -101,18 +102,19 @@ export function createGhosts() {
   const colors = Array(ENEMY_QUANTITY).fill("white")
   return colors.map((color) => {
     return createGhost({
-      position: { x: 367.5, y: 330.5 },
+      position: { x: GHOST_START_X, y: GHOST_START_Y },
       velocity: { x: MOVEMENT_SPEED, y: 0 },
       color,
     })
   });
 }
 
-function createPacman({ position, velocity, color }) {
+function createPacman({ position, velocity, color, playerNumber }) {
   return {
     position,
     velocity,
     color,
+    playerNumber,
     radius: PACMAN_RADIUS,
     score: 0,
     draw() {
@@ -177,15 +179,22 @@ function createPacman({ position, velocity, color }) {
 }
 
 export function createPlayer({ position, velocity, color, playerNumber }) {
-  const player = createPacman({ position, velocity, color });
+  const player = createPacman({ position, velocity, color, playerNumber });
   const pointsDiv = document.querySelector(`#p${playerNumber}-score`);
   pointsDiv.style.color = color
   pointsDiv.innerText = 0
   return player
 }
 
-export function addPoint(player) {
-  player.score += 1;
+export function collisionWithGhost(player, ghost) {
+  const x = player.position.x - ghost.position.x;
+  const y = player.position.y - ghost.position.y;
+  return Math.hypot(x, y) <= PACMAN_RADIUS/2 + GHOST_RADIUS/2
+}
+
+export function addPoints(player) {
+  player.score += 10;
   const pointsDiv = document.querySelector(`#p${player.playerNumber}-score`);
-  pointsDiv.innerText = 0
+  pointsDiv.innerText = player.score
+  return player.score
 }

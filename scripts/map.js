@@ -1,5 +1,7 @@
 import {
-  PELLET_RADIUS, 
+  PELLET_RADIUS,
+  PACMAN_RADIUS,
+  GHOST_RADIUS,
   WALL_DIM,
   IMAGES,
   GAME_MAP_ORIGINAL
@@ -68,6 +70,18 @@ function createPellet({ position, position_relative }) {
   }
 }
 
+export function collisionWithPellet(player, pellet) {
+  const x = player.position.x - pellet.position.x;
+  const y = player.position.y - pellet.position.y;
+  return Math.hypot(x, y) < PACMAN_RADIUS + PELLET_RADIUS
+}
+
+export function ghostCollisionWithPellet(ghost, pellet) {
+  const x = ghost.position.x - pellet.position.x;
+  const y = ghost.position.y - pellet.position.y;
+  return Math.hypot(x, y) < GHOST_RADIUS + PELLET_RADIUS
+}
+
 export function deletePellet(pellet) {
   pellet.alive = false
 }
@@ -78,7 +92,6 @@ export function drawMap() {
   GAME_MAP.forEach((row, i) => {
     row.forEach((cell, j) => {
       if (cell === ".") {
-        console.log("pellet");
         pellets.push(
           createPellet({
             position: {

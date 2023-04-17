@@ -6,11 +6,14 @@ export const INTERVAL_RATE = 50;
 export const MOVEMENT_SPEED = WALL_DIM / 5;
 
 export const PACMAN_RADIUS = WALL_DIM / 4;
-export const PLAYER_1_START = { x: WALL_DIM*19.5, y: WALL_DIM*1.5 }
-export const PLAYER_2_START = { x: WALL_DIM*1.5, y: WALL_DIM*1.5 }
+export const PLAYER_1_START_X = WALL_DIM*19.5
+export const PLAYER_1_START_Y = WALL_DIM*1.5
+export const PLAYER_2_START_X = WALL_DIM*1.5
+export const PLAYER_2_START_Y = WALL_DIM*1.5
 
 export const GHOST_RADIUS = WALL_DIM / 3;
-export const GHOST_START = { x: 367.5, y: 330.5 }
+export const GHOST_START_X = WALL_DIM*10.5
+export const GHOST_START_Y = WALL_DIM*9.5
 export const ENEMY_QUANTITY = 4
 
 export const IMAGES = {

@@ -1,14 +1,17 @@
 const { fromEvent, from } = rxjs;
 const { map, debounceTime, mapTo, filter, tap, distinctUntilChanged, pluck  } = rxjs.operators;
 const { merge, interval } = rxjs;
-import { drawMap, deletePellet } from './map.js';
-import { createGhosts, createPlayer, addPoint } from './entities.js';
+import { drawMap, collisionWithPellet, deletePellet, ghostCollisionWithPellet } from './map.js';
+import { createGhosts, createPlayer, collisionWithGhost, addPoints } from './entities.js';
 import {
   MOVEMENT_SPEED,
-  PLAYER_1_START,
-  PLAYER_2_START,
+  PLAYER_1_START_X,
+  PLAYER_1_START_Y,
+  PLAYER_2_START_X,
+  PLAYER_2_START_Y,
+  GHOST_START_X,
+  GHOST_START_Y,
   INTERVAL_RATE,
-  GHOST_START
 } from './constants.js';
 
 const canvas2 = document.getElementById("game-canvas");
@@ -16,150 +19,112 @@ const ctx = canvas2.getContext("2d");
 canvas2.width = innerWidth;
 canvas2.height = innerHeight;
 
+
+const pellets = drawMap();
+const ghosts = createGhosts();
+
+function subscribePlayerToGame(player) {
+  const directionsSpeed = [
+    { x: -MOVEMENT_SPEED, y: 0 }, // left
+    { x: MOVEMENT_SPEED, y: 0 },  // right
+    { x: 0, y: -MOVEMENT_SPEED }, // up
+    { x: 0, y: MOVEMENT_SPEED },  // down
+  ]
+  let keys = [];
+  if (player.playerNumber == 1) {
+    keys = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]
+  } else {
+    keys = ["a", "d", "w", "s"]
+  }
+  const moves$ = directionsSpeed.map(
+    (speed) => {
+      return fromEvent(document, "keydown")
+        .pipe(
+          filter((event) => { 
+            if (event.key === keys[directionsSpeed.indexOf(speed)]) { event.preventDefault(); return true } return false
+          }),
+          mapTo(speed)
+        )
+    }
+  )
+  const movePlayer$ = merge(...moves$);
+  movePlayer$.subscribe((distance) => {
+    player.velocity = distance;
+  });
+}
+
 // PLAYER 1
 const player1 = createPlayer({
-  position: PLAYER_1_START,
+  position: { x: PLAYER_1_START_X, y: PLAYER_1_START_Y },
   velocity: { x: 0, y: 0 },
   color: "yellow",
   playerNumber: 1,
 })
 
-const leftArrow$ = fromEvent(document, "keydown").pipe(
-  filter((event) => {
-    if (event.key === "ArrowLeft") {event.preventDefault(); return true}
-    return false
-  }),
-  mapTo({ x: -MOVEMENT_SPEED, y: 0 })
-);
-const rightArrow$ = fromEvent(document, "keydown").pipe(
-  filter((event) => {
-    if (event.key === "ArrowRight") {event.preventDefault(); return true}
-    return false
-  }),
-  mapTo({ x: MOVEMENT_SPEED, y: 0 })
-);
-const upArrow$ = fromEvent(document, "keydown").pipe(
-  filter((event) => {
-    if (event.key === "ArrowUp") {event.preventDefault(); return true}
-    return false
-  }),
-  mapTo({ x: 0, y: -MOVEMENT_SPEED })
-);
-const downArrow$ = fromEvent(document, "keydown").pipe(
-  filter((event) => {
-    if (event.key === "ArrowDown") {event.preventDefault(); return true}
-    return false
-  }),
-  mapTo({ x: 0, y: MOVEMENT_SPEED })
-);
-
-const movepacmanP1$ = merge(leftArrow$, rightArrow$, upArrow$, downArrow$);
-
-movepacmanP1$.subscribe((distance) => {
-  player1.velocity = distance;
-});
-
-
 // PLAYER 2
 const player2 = createPlayer({
-  position: PLAYER_2_START,
+  position: { x: PLAYER_2_START_X, y: PLAYER_2_START_Y },
   velocity: { x: 0, y: 0 },
   color: "red",
   playerNumber: 2,
 });
 
-const aKey$ = fromEvent(document, "keydown").pipe(
-  filter((event) => event.key.toLowerCase() === "a"),
-  mapTo({ x: -MOVEMENT_SPEED, y: 0 })
-);
-const dKey$ = fromEvent(document, "keydown").pipe(
-  filter((event) => event.key.toLowerCase() === "d"),
-  mapTo({ x: MOVEMENT_SPEED, y: 0 })
-);
-const wKey$ = fromEvent(document, "keydown").pipe(
-  filter((event) => event.key.toLowerCase() === "w"),
-  mapTo({ x: 0, y: -MOVEMENT_SPEED })
-);
-const sKey$ = fromEvent(document, "keydown").pipe(
-  filter((event) => event.key.toLowerCase() === "s"),
-  mapTo({ x: 0, y: MOVEMENT_SPEED })
-);
 
-const movepacmanP2$ = merge(aKey$, dKey$, wKey$, sKey$);
-
-movepacmanP2$.subscribe((distance) => {
-  player2.velocity = distance;
-});
+subscribePlayerToGame(player1)
+subscribePlayerToGame(player2)
 
 
-
-
-const pellets = drawMap();
-const ghosts = createGhosts();
-
-const cicle = interval(INTERVAL_RATE);
-
-cicle.subscribe(() => {
-  ctx.clearRect(0, 0, canvas2.width, canvas2.height);
-  player1.move();
-  player2.move();
-  ghosts.forEach((ghost) => {
-    ghost.update();
-    ghost.changeDirection();
-  });
-  pellets.forEach((pellet) => {
-    if (!pellet.alive){return}
-    pellet.update();
-    if (
-      Math.hypot(
-        pellet.position.x - player1.position.x,
-        pellet.position.y - player1.position.y
-      ) <
-      pellet.radius + player1.radius
-    ) {
-      pellet.color = player1.color;
-    }
-    if (
-      Math.hypot(
-        pellet.position.x - player2.position.x,
-        pellet.position.y - player2.position.y
-      ) <
-      pellet.radius + player2.radius
-    ) {
-      pellet.color = player2.color;
-    }
-    ghosts.forEach((ghost) => {
-      if (
-        Math.hypot(
-          pellet.position.x - ghost.position.x,
-          pellet.position.y - ghost.position.y
-        ) <
-        pellet.radius + ghost.radius
-      ) {
-        if (pellet.color === player1.color) {
-          player1.score += 10;
-          deletePellet(pellet)
-        } else if (pellet.color === player2.color) {
-          player2.score += 10;
-          deletePellet(pellet)
+// GAME LOOP
+interval(INTERVAL_RATE)
+  .pipe(
+    tap(() => {
+      ctx.clearRect(0, 0, canvas2.width, canvas2.height);
+      player1.move();
+      player2.move();
+      ghosts.forEach((ghost) => {
+        ghost.update();
+        ghost.changeDirection();
+        if (collisionWithGhost(player1, ghost)) {
+          console.log("player 1 died")
         }
-        pellet.color = "white";
-      }
+        if (collisionWithGhost(player2, ghost)) {
+          console.log("player 2 died")
+        }
+      });
+      pellets.forEach((pellet) => {
+        if (!pellet.alive) { return }
+        pellet.update();
+        if (collisionWithPellet(player1, pellet)) { pellet.color = player1.color }
+        if (collisionWithPellet(player2, pellet)) { pellet.color = player2.color }
+        ghosts.forEach((ghost) => {
+          if (ghostCollisionWithPellet(ghost, pellet)) {
+            if (pellet.color === player1.color) {
+              player1.score = addPoints(player1);
+              deletePellet(pellet)
+            } else if (pellet.color === player2.color) {
+              player1.score = addPoints(player2);
+              deletePellet(pellet)
+            }
+            pellet.color = "white";
+          }
+        })
+      });
     })
-  });
-});
+  ).subscribe()
 
-export function reset() {
-  pellets.forEach((p)=>{p.alive = true; p.color = 'white'})
+
+function reset() {
+  pellets.forEach((p) => { p.alive = true; p.color = 'white' })
   player1.score = 0;
   player2.score = 0;
-  player1.position = PLAYER_1_START;
-  player2.position = PLAYER_2_START;
+  document.querySelector(`#p1-score`).innerText = 0;
+  document.querySelector(`#p2-score`).innerText = 0;
+  player1.position = { x: PLAYER_1_START_X, y: PLAYER_1_START_Y };
+  player2.position = { x: PLAYER_2_START_X, y: PLAYER_2_START_Y };
   player1.velocity = { x: 0, y: 0 };
   player2.velocity = { x: 0, y: 0 };
-  ghosts.forEach((g) => {g.position = { x: 367.5, y: 330.5 }})
+  ghosts.forEach((g) => { g.position = { x: GHOST_START_X, y: GHOST_START_Y } })
 }
-
 
 const resetButton = document.querySelector('#start-button');
 
@@ -167,6 +132,3 @@ fromEvent(resetButton, 'click')
   .pipe(
     tap(() => reset())
   ).subscribe();
-
-
-
